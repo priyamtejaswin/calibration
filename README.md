@@ -12,6 +12,7 @@ Code modified from the following EMNLP 2020 paper: [Calibration of Pre-trained T
 ## Setup
 ```
 git clone git@github.com:priyamtejaswin/calibration.git
+cd calibration
 conda create -n "roberta-calib" python=3.6
 conda activate roberta-calib
 pip install -r requirements.txt
