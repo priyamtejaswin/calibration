@@ -1,3 +1,37 @@
+# Replicating HellaSWAG SoTA results using `roberta-large`.
+
+Code modified from the following EMNLP 2020 paper: [Calibration of Pre-trained Transformers](https://arxiv.org/abs/2003.07892). Cite:
+```bibtex
+@inproceedings{desai-durrett-2020-calibration,
+  author={Desai, Shrey and Durrett, Greg},
+  title={{Calibration of Pre-trained Transformers}},
+  year={2020},
+  booktitle={Proceedings of the Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+}
+```
+## Setup
+```
+git clone git@github.com:priyamtejaswin/calibration.git
+conda create -n "roberta-calib" python=3.6
+conda activate roberta-calib
+pip install -r requirements.txt
+```
+
+## Training
+* The repo is self-contained with sample data in `calibration_data/HellaSWAG`
+* `bash script.sh` will start training using the same data.
+
+## Notes
+* `train.py` is the main training script. This has been updated to use Roberta-Large, with batch size of 1 and gradient accunmulation of 32.
+* `script.sh` is the script to start training.
+* Results will be shown on the screen, and the output will be saved in `output`.
+* Model checkpoints will be saved in `ckpt`.
+* Sample data is in `calibration_data/HellaSWAG`
+* For the complete data, please [download the exact train/dev/test datasets](https://drive.google.com/file/d/1ro3Q7019AtGYSG76KeZQSq35lBi7lU3v/view?usp=sharing)
+
+
+**The original README follows.**
+---
 
 # Calibration of Pre-trained Transformers
 
