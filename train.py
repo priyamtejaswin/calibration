@@ -34,12 +34,13 @@ parser.add_argument('--label_smoothing', type=float, default=-1., help='label sm
 parser.add_argument('--max_grad_norm', type=float, default=1., help='gradient clip')
 parser.add_argument('--do_train', action='store_true', default=False, help='enable training')
 parser.add_argument('--do_evaluate', action='store_true', default=False, help='enable evaluation')
+parser.add_argument('--gradient_accumulation_steps', type=int, default=1, help='Accumulate gradients')
 args = parser.parse_args()
 print(args)
 
 
 assert args.task in ('SNLI', 'MNLI', 'QQP', 'TwitterPPDB', 'SWAG', 'HellaSWAG')
-assert args.model in ('bert-base-uncased', 'roberta-base')
+# assert args.model in ('bert-base-uncased', 'roberta-base')
 
 
 if args.task in ('SNLI', 'MNLI'):
@@ -333,7 +334,7 @@ class Model(nn.Module):
     def __init__(self):
         super().__init__()
         self.model = AutoModel.from_pretrained(args.model)
-        self.classifier = nn.Linear(768, n_classes)
+        self.classifier = nn.Linear(1024, n_classes)
 
     def forward(self, input_ids, segment_ids, attention_mask):
         # On SWAG and HellaSWAG, collapse the batch size and
@@ -383,7 +384,7 @@ class LabelSmoothingLoss(nn.Module):
 
 def train(dataset):
     """Fine-tunes pre-trained model on training set."""
-
+    global global_step
     model.train()
     train_loss = 0.
     train_loader = tqdm(load(dataset, args.batch_size, True))
@@ -392,11 +393,20 @@ def train(dataset):
         optimizer.zero_grad()
         loss = criterion(model(*inputs), label)
         train_loss += loss.item()
-        train_loader.set_description(f'train loss = {(train_loss / i):.6f}')
+        if args.gradient_accumulation_steps > 1:
+            loss = loss / args.gradient_accumulation_steps
         loss.backward()
+
+        global_step += 1
+        if global_step % args.gradient_accumulation_steps == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+            train_loader.set_description(f'train loss = {(train_loss / i):.6f}')
+
         if args.max_grad_norm > 0.:
             nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
-        optimizer.step()
+
+        # optimizer.step()
     return train_loss / len(train_loader)
 
 
@@ -414,6 +424,7 @@ def evaluate(dataset):
     return eval_loss / len(eval_loader)
 
 
+global_step = 0
 model = cuda(Model())
 processor = select_processor()
 tokenizer = AutoTokenizer.from_pretrained(args.model)
