@@ -3,5 +3,3 @@
 __pycache__/
 venv/
 *.tar*
-calibration_data/
-!calibration_data/HellaSWAG/
